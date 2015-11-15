@@ -9,10 +9,42 @@ tartalmaz, a címzett nevét, címét és találkozó helyét! A körlevelek a s
 
 
 function send(){
-    echo $*
+    email=$(cat $4 | sed "s/\(<name>\)/${1}/g" | sed "s/\(<location>\)/${3}/g")
+    echo "To: ${2}"
+    echo "Subject: Meghívó"
+    echo ${email}
+    echo
 }
 
-while IFS=',' read -r name email location
-do
-   send $name $email $location
-done < "$1"
+
+
+hiba=0  # hiba létének tárolására szolgáló változó
+
+if [[ $# -ne 2 ]]
+then
+    echo "Nem megfelő számú argumentum! A script 2 argumentumot vár, az első a névjegyzék a második az email szövege."
+    exit 1
+fi
+
+if ! [[ -f ${1} ]]
+then
+    ${hiba}=$(expr ${hiba} + 1)
+    echo "${hiba}: A megadott névjegyzék nem létezik!"
+fi
+
+if ! [[ -f ${2} ]]
+then
+    ${hiba}=$(expr ${hiba} + 1)
+    echo "${hiba}: Az levél szövegét tartalmazó fájl nem létezik!"
+fi
+
+if [[ ${hiba} -ne 0 ]]
+then
+    exit ${hiba}
+else
+
+    while IFS=',' read -r name email location
+    do
+       send "${name}" "${email}" "${location}" "${2}"
+    done < "$1"
+fi
